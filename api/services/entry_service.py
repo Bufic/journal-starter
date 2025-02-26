@@ -71,8 +71,8 @@ class EntryService:
         await self.db.delete_entry(entry_id)
         logger.debug("Entry %s deleted", entry_id)
 
-    async def delete_entries(self) -> None:
+    async def delete_all_entries(self) -> None:
         """Deletes all entries."""
         logger.info("Deleting all entries")
-        await self.db.delete_entries()
+        await self.db.delete_all_entries()
         logger.debug("All entries deleted")

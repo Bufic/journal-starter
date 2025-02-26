@@ -34,6 +34,7 @@ async def create_entry(request: Request, entry: dict, entry_service: EntryServic
                 )
             raise e
     return JSONResponse(content={"detail": "Entry created successfully"}, status_code=201)
+
 @router.get("/entries")
 async def get_all_entries(request: Request):
     logger.info("Fetching all entries")
@@ -82,6 +83,6 @@ async def delete_all_entries(request: Request):
     logger.info("Delete all entries requested")
     async with PostgresDB() as db:
         entry_service = EntryService(db)
-        await entry_service.delete_entries()
+        await entry_service.delete_all_entries()
     logger.info("All entries deleted")
     return {"detail": "All entries deleted"}
