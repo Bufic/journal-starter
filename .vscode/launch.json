@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "Python Debugger: FastAPI",
             "type": "debugpy",
@@ -11,9 +12,15 @@
             "module": "uvicorn",
             "args": [
                 "api.main:app",
-                "--reload"
+                "--reload",
+                "--host", "0.0.0.0",
+                "--port", "8000"
             ],
-            "jinja": true
+            "jinja": true,
+            "env": {
+                "PYTHONPATH": "."
+            },
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

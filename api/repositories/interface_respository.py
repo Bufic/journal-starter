@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
+
 class DatabaseInterface(ABC):
     @abstractmethod
     async def create_entry(self, entry_data: Dict[str, Any]) -> None:
         """Create a new entry in the database."""
         pass
-    
+
     @abstractmethod
     async def get_entries(self) -> List[Dict[str, Any]]:
         """Retrieve all entries from the database."""
@@ -27,7 +28,7 @@ class DatabaseInterface(ABC):
         """Delete a specific entry by entry_id from the database."""
         pass
 
-    @abstractmethod 
+    @abstractmethod
     async def delete_all_entries(self) -> None:
         """Delete all entries from the database."""
         pass

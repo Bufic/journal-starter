@@ -5,3 +5,9 @@ aiohttp
 sqlalchemy
 psycopg2-binary
 asyncpg
+bleach
+pydantic
+slowapi==0.1.7
+fastapi-cache2==0.2.0
+python-multipart==0.0.6
+python-jose==3.3.0  # For JWT tokens
