@@ -3,7 +3,7 @@ import asyncio
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from api.controllers import journal_router
-from .init_db import init_db
+from api.init_db import init_db
 
 load_dotenv()
 
