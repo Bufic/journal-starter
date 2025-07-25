@@ -37,33 +37,39 @@ jobs:
 
       - name: Configure PostgreSQL
         run: |
-          ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'TUNNEL'
-          #!/bin/bash
-          ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ steps.db-ip.outputs.DB_IP }} << 'PGEOF'
-          #!/bin/bash
-          set -e
+          # Create SSH config file
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+           
+           ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'TUNNEL'
+           #!/bin/bash
+           ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ steps.db-ip.outputs.DB_IP }} << 'PGEOF'
+           #!/bin/bash
+           set -e
 
-          # Install and configure PostgreSQL
-          sudo apt-get update
-          sudo apt-get install -y postgresql postgresql-contrib
+           # Install and configure PostgreSQL
+           sudo apt-get update
+           sudo apt-get install -y postgresql postgresql-contrib
 
-          # Allow connections from FastAPI instance only
-          echo "host ${{ secrets.DB_NAME }} postgres ${{ steps.db-ip.outputs.DB_IP }}/32 md5" | \
-            sudo tee -a /etc/postgresql/14/main/pg_hba.conf
+           # Allow connections from FastAPI instance only
+           echo "host ${{ secrets.DB_NAME }} postgres ${{ steps.db-ip.outputs.DB_IP }}/32 md5" | \
+             sudo tee -a /etc/postgresql/14/main/pg_hba.conf
 
-          sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'" \
-            /etc/postgresql/14/main/postgresql.conf
+           sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'" \
+             /etc/postgresql/14/main/postgresql.conf
 
-          sudo systemctl restart postgresql
+           sudo systemctl restart postgresql
 
-          # Secure database
-          sudo -u postgres psql -c "
-            ALTER USER postgres WITH PASSWORD '${{ secrets.DB_PASSWORD }}';
-            CREATE DATABASE ${{ secrets.DB_NAME }};
-            REVOKE ALL ON DATABASE ${{ secrets.DB_NAME }} FROM public;
-          "
-          PGEOF
-          TUNNEL
+           # Secure database
+           sudo -u postgres psql -c "
+             ALTER USER postgres WITH PASSWORD '${{ secrets.DB_PASSWORD }}';
+             CREATE DATABASE ${{ secrets.DB_NAME }};
+             REVOKE ALL ON DATABASE ${{ secrets.DB_NAME }} FROM public;
+           "
+           PGEOF
+           TUNNEL
 
   deploy-app:
     needs: setup-database
