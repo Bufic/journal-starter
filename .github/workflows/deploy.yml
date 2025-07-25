@@ -30,7 +30,7 @@ jobs:
           echo "DB_IP=${IP}" >> $GITHUB_OUTPUT
 
       - name: Configure PostgreSQL
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v2
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ubuntu
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Configure Docker on EC2
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v2
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ubuntu
@@ -84,7 +84,7 @@ jobs:
             fi
 
       - name: Deploy FastAPI Container
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v2
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ubuntu
