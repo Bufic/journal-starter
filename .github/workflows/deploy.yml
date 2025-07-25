@@ -29,104 +29,108 @@ jobs:
             --output text)
           echo "DB_IP=${IP}" >> $GITHUB_OUTPUT
 
-      - name: Configure PostgreSQL
-        uses: appleboy/ssh-action@v2
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
         with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          script: |
-            ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ steps.db-ip.outputs.DB_IP }} << 'PGEOF'
-            #!/bin/bash
-            set -e
 
-            # Install and configure PostgreSQL
-            sudo apt-get update
-            sudo apt-get install -y postgresql postgresql-contrib
+      - name: Configure PostgreSQL
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'TUNNEL'
+          #!/bin/bash
+          ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ steps.db-ip.outputs.DB_IP }} << 'PGEOF'
+          #!/bin/bash
+          set -e
 
-            # Allow connections from FastAPI instance only
-            echo "host ${{ secrets.DB_NAME }} postgres ${{ needs.setup-database.outputs.db_ip }}/32 md5" | \
-              sudo tee -a /etc/postgresql/14/main/pg_hba.conf
+          # Install and configure PostgreSQL
+          sudo apt-get update
+          sudo apt-get install -y postgresql postgresql-contrib
 
-            sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" \
-              /etc/postgresql/14/main/postgresql.conf
+          # Allow connections from FastAPI instance only
+          echo "host ${{ secrets.DB_NAME }} postgres ${{ steps.db-ip.outputs.DB_IP }}/32 md5" | \
+            sudo tee -a /etc/postgresql/14/main/pg_hba.conf
 
-            sudo systemctl restart postgresql
+          sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'" \
+            /etc/postgresql/14/main/postgresql.conf
 
-            # Secure database
-            sudo -u postgres psql -c "
-              ALTER USER postgres WITH PASSWORD '${{ secrets.DB_PASSWORD }}';
-              CREATE DATABASE ${{ secrets.DB_NAME }};
-              REVOKE ALL ON DATABASE ${{ secrets.DB_NAME }} FROM public;
-            "
-            PGEOF
+          sudo systemctl restart postgresql
+
+          # Secure database
+          sudo -u postgres psql -c "
+            ALTER USER postgres WITH PASSWORD '${{ secrets.DB_PASSWORD }}';
+            CREATE DATABASE ${{ secrets.DB_NAME }};
+            REVOKE ALL ON DATABASE ${{ secrets.DB_NAME }} FROM public;
+          "
+          PGEOF
+          TUNNEL
 
   deploy-app:
     needs: setup-database
     runs-on: ubuntu-latest
     steps:
-      - name: Configure Docker on EC2
-        uses: appleboy/ssh-action@v2
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
         with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          script: |
-            # Install Docker if missing
-            if ! command -v docker &> /dev/null; then
-              sudo apt-get update
-              sudo apt-get install -y docker.io
-              sudo systemctl enable docker
-              sudo usermod -aG docker ubuntu
-              newgrp docker
-            fi
+
+      - name: Configure Docker on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'DOCKER'
+          #!/bin/bash
+          set -e
+
+          # Install Docker if missing
+          if ! command -v docker &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y docker.io
+            sudo systemctl enable docker
+            sudo usermod -aG docker ubuntu
+            newgrp docker
+          fi
+          DOCKER
 
       - name: Deploy FastAPI Container
-        uses: appleboy/ssh-action@v2
-        with:
-          host: ${{ secrets.EC2_PUBLIC_IP }}
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-          script: |
-            # Wait for DB readiness
-            for i in $(seq 1 ${{ env.DB_HEALTH_TIMEOUT }}); do
-              if docker run --rm postgres:13 pg_isready \
-                -h ${{ needs.setup-database.outputs.db_ip }} \
-                -U postgres \
-                -d ${{ secrets.DB_NAME }}; then
-                break
-              fi
-              sleep 2
-            done
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'DEPLOY'
+          #!/bin/bash
+          set -e
 
-            # Deploy container
-            docker pull ${{ env.DOCKER_IMAGE }}:latest
-            docker stop journal-app || true
-            docker rm journal-app || true
+          # Wait for DB readiness
+          for i in $(seq 1 ${{ env.DB_HEALTH_TIMEOUT }}); do
+            if docker run --rm postgres:13 pg_isready \
+              -h ${{ needs.setup-database.outputs.db_ip }} \
+              -U postgres \
+              -d ${{ secrets.DB_NAME }}; then
+              break
+            fi
+            sleep 2
+          done
 
-            docker run -d --name journal-app \
-              --restart unless-stopped \
-              -p 8000:8000 \
-              -e DB_HOST=${{ needs.setup-database.outputs.db_ip }} \
-              -e DB_PORT=5432 \
-              -e DB_NAME=${{ secrets.DB_NAME }} \
-              -e DB_USER=postgres \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              ${{ env.DOCKER_IMAGE }}:latest
+          # Deploy container
+          docker pull ${{ env.DOCKER_IMAGE }}:latest
+          docker stop journal-app || true
+          docker rm journal-app || true
 
-            # Verify deployment
-            sleep 10
-            docker exec journal-app curl -sSf http://localhost:8000/docs
+          docker run -d --name journal-app \
+            --restart unless-stopped \
+            -p 8000:8000 \
+            -e DB_HOST=${{ needs.setup-database.outputs.db_ip }} \
+            -e DB_PORT=5432 \
+            -e DB_NAME=${{ secrets.DB_NAME }} \
+            -e DB_USER=postgres \
+            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            ${{ env.DOCKER_IMAGE }}:latest
+
+          # Verify deployment
+          sleep 10
+          curl -sSf http://localhost:8000/docs
+          DEPLOY
 
     #   - name: Run Database Migrations
-    #     uses: appleboy/ssh-action@v1
-    #     with:
-    #       host: ${{ secrets.EC2_PUBLIC_IP }}
-    #       username: ubuntu
-    #       key: ${{ secrets.SSH_PRIVATE_KEY }}
-    #       known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-    #       script: |
-    #         docker exec journal-app alembic upgrade head
+    #     run: |
+    #       ssh -o StrictHostKeyChecking=accept-new ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'MIGRATE'
+    #       #!/bin/bash
+    #       docker exec journal-app alembic upgrade head
+    #       MIGRATE
