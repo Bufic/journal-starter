@@ -37,20 +37,27 @@ jobs:
           USERNAME: ${{ secrets.USERNAME }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         run: |
           ssh -o StrictHostKeyChecking=no "$USERNAME@$HOST" << EOF
-            sudo apt update
-            sudo apt install -y docker.io
+           sudo apt update
+           sudo apt install -y docker.io
 
-            echo "$DOCKERHUB_TOKEN" | sudo docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+           echo "$DOCKERHUB_TOKEN" | sudo docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-            sudo docker stop fastapi-app || true
-            sudo docker rm fastapi-app || true
+           sudo docker stop fastapi-app || true
+           sudo docker rm fastapi-app || true
 
-            sudo docker pull "$DOCKERHUB_USERNAME/fastapi-app:latest"
+           sudo docker pull "$DOCKERHUB_USERNAME/fastapi-app:latest"
 
-            sudo docker run -d --name fastapi-app -p 80:8000 \
-            -e DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_HOST }}:5432/${{ secrets.POSTGRES_DB }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
+           sudo docker run -d --name fastapi-app -p 80:8000 \
+           -e POSTGRES_USER=$POSTGRES_USER \
+           -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+           -e POSTGRES_HOST=$POSTGRES_HOST \
+           -e POSTGRES_DB=$POSTGRES_DB \
+           -e DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB \
+           $DOCKERHUB_USERNAME/fastapi-app:latest
           EOF
