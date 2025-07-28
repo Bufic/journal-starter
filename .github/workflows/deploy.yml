@@ -33,7 +33,7 @@ jobs:
 
       - name: Deploy on EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
 
             sudo apt update
             sudo apt install -y docker.io
@@ -42,7 +42,9 @@ jobs:
 
             sudo docker stop fastapi-app || true
             sudo docker rm fastapi-app || true
+
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
+
             sudo docker run -d --name fastapi-app -p 80:8000 \
             -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
             ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
