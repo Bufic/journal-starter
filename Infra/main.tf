@@ -14,10 +14,13 @@ module "security_group" {
 
 module "ec2" {
   source             = "./modules/ec2"
-  ami_id             = "ami-0c2b8ca1dad447f8a" # Amazon Linux 2 or Ubuntu
+  ami_id             = "ami-020cba7c55df1f615" # Amazon Linux 2 or Ubuntu
   key_name           = "three-tier"
   public_subnet_id   = module.vpc.public_subnet_id
   private_subnet_id  = module.vpc.private_subnet_id
   fastapi_sg_id      = module.security_group.fastapi_sg_id
   postgres_sg_id     = module.security_group.postgres_sg_id
+  db_name            = var.db_name
+  db_user            = var.db_user
+  db_password        = var.db_password
 }
