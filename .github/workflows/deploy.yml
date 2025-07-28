@@ -37,13 +37,13 @@ jobs:
 
             sudo apt update
             sudo apt install -y docker.io
-            sudo usermod -aG docker $USER
-            
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            docker stop fastapi-app || true
-            docker rm fastapi-app || true
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
-            docker run -d --name fastapi-app -p 80:8000 \
+
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            sudo docker stop fastapi-app || true
+            sudo docker rm fastapi-app || true
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
+            sudo docker run -d --name fastapi-app -p 80:8000 \
               -e POSTGRES_HOST=${{ secrets.POSTGRES_HOST }} \
               -e POSTGRES_DB=${{ secrets.POSTGRES_DB }} \
               -e POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
