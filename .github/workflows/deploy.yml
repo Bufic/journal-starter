@@ -32,20 +32,25 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Deploy on EC2
+        env:
+          HOST: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
-
+          ssh -o StrictHostKeyChecking=no "$USERNAME@$HOST" << EOF
             sudo apt update
             sudo apt install -y docker.io
 
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            echo "$DOCKERHUB_TOKEN" | sudo docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
             sudo docker stop fastapi-app || true
             sudo docker rm fastapi-app || true
 
-            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
+            sudo docker pull "$DOCKERHUB_USERNAME/fastapi-app:latest"
 
             sudo docker run -d --name fastapi-app -p 80:8000 \
-            -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-            ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
+              -e DATABASE_URL="$DATABASE_URL" \
+              "$DOCKERHUB_USERNAME/fastapi-app:latest"
           EOF
