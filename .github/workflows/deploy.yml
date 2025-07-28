@@ -51,6 +51,6 @@ jobs:
             sudo docker pull "$DOCKERHUB_USERNAME/fastapi-app:latest"
 
             sudo docker run -d --name fastapi-app -p 80:8000 \
-              -e DATABASE_URL="$DATABASE_URL" \
-              "$DOCKERHUB_USERNAME/fastapi-app:latest"
+            -e DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_HOST }}:5432/${{ secrets.POSTGRES_DB }} \
+            ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest
           EOF
