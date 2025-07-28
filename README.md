@@ -13,7 +13,7 @@ Create a complete Journal API solution that allows users to:
 - Delete journal entries
 - Implement proper validation and error handling
 
-## Development Tasks
+## Development Tasksss
 
 ### API Implementation
 
@@ -48,14 +48,14 @@ Create a complete Journal API solution that allows users to:
 
 The journal entry data model is structured as follows:
 
-| Field       | Type      | Description                                | Validation                   |
-|-------------|-----------|--------------------------------------------|------------------------------|
-| id          | string    | Unique identifier for the entry (UUID)     | Auto-generated UUID          |
-| work        | string    | What did you work on today?                | Required, max 256 characters |
-| struggle    | string    | What's one thing you struggled with today? | Required, max 256 characters |
-| intention   | string    | What will you study/work on tomorrow?      | Required, max 256 characters |
-| created_at  | datetime  | Timestamp when the entry was created       | Auto-generated UTC timestamp |
-| updated_at  | datetime  | Timestamp when the entry was last updated  | Auto-updated UTC timestamp   |
+| Field      | Type     | Description                                | Validation                   |
+| ---------- | -------- | ------------------------------------------ | ---------------------------- |
+| id         | string   | Unique identifier for the entry (UUID)     | Auto-generated UUID          |
+| work       | string   | What did you work on today?                | Required, max 256 characters |
+| struggle   | string   | What's one thing you struggled with today? | Required, max 256 characters |
+| intention  | string   | What will you study/work on tomorrow?      | Required, max 256 characters |
+| created_at | datetime | Timestamp when the entry was created       | Auto-generated UTC timestamp |
+| updated_at | datetime | Timestamp when the entry was last updated  | Auto-updated UTC timestamp   |
 
 All text fields require sanitization to prevent injection attacks and ensure data quality. The schema includes version tracking to handle potential future changes to the data structure.
 
@@ -96,6 +96,7 @@ All text fields require sanitization to prevent injection attacks and ensure dat
 ## Getting Started
 
 1. **Set up your development environment:**
+
    - Install Python and required dependencies
    - Configure your chosen cloud provider CLI tool
    - Set up a local PostgreSQL database for development and testing
@@ -103,6 +104,7 @@ All text fields require sanitization to prevent injection attacks and ensure dat
    - Configure logging and monitoring
 
 2. **Implement core API features:**
+
    - Add missing API endpoints for journal entries
    - Implement proper error handling
    - Add input validation
