@@ -1,0 +1,29 @@
+# k8s/monitoring/grafana-dashboard-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  fastapi-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "FastAPI Metrics",
+        "panels": [
+          {
+            "type": "graph",
+            "title": "Request Rate",
+            "targets": [
+              {
+                "expr": "http_requests_total",
+                "format": "time_series"
+              }
+            ]
+          }
+        ],
+        "schemaVersion": 16
+      },
+      "overwrite": true
+    }
