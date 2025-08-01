@@ -73,17 +73,24 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted # Your local machine
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Replace image tag (optional, if you version images)
+      - name: Replace image tag in FastAPI deployment
         run: |
-          sed -i "s|image:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest|" k8s/deployment.yaml
+          sed -i "s|image:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest|" k8s/fastapi-deployment.yaml
 
-      - name: Apply Manifests to kind
+      - name: Apply all Kubernetes manifests
         run: |
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/config.yaml
+          kubectl apply -f k8s/configmap.yaml
+          kubectl apply -f k8s/secret.yaml
+          kubectl apply -f k8s/postgres-secret.yaml
+          kubectl apply -f k8s/postgres-deployment.yaml
+          kubectl apply -f k8s/postgres-service.yaml
+          kubectl apply -f k8s/fastapi-deployment.yaml
+          kubectl apply -f k8s/fastapi-service.yaml
