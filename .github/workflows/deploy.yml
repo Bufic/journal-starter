@@ -83,9 +83,13 @@ jobs:
         run: |
           sed -i "s|image:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/fastapi-app:latest|" k8s/fastapi-deployment.yaml
 
+      - name: Apply all Namespaces
+        run: |
+          kubectl apply -f namespaces/journal-app-namespace.yaml
+          kubectl apply -f namespaces/monitoring-namespace.yaml
+
       - name: Apply all Kubernetes manifests
         run: |
-          kubectl apply -f k8s/namespace.yaml
           kubectl apply -f k8s/config.yaml
           kubectl apply -f k8s/secret.yaml
           kubectl apply -f k8s/postgres-secret.yaml
@@ -93,3 +97,13 @@ jobs:
           kubectl apply -f k8s/postgres-service.yaml
           kubectl apply -f k8s/fastapi-deployment.yaml
           kubectl apply -f k8s/fastapi-service.yaml
+
+      - name: Deploy Monitoring stack (Prometheus & Grafana)
+        run: |
+          kubectl apply -f monitoring/prometheus-config.yaml
+          kubectl apply -f monitoring/prometheus-deployment.yaml
+          kubectl apply -f monitoring/prometheus-service.yaml
+          kubectl apply -f monitoring/grafana-datasources.yaml
+          kubectl apply -f monitoring/grafana-dashboards.yaml
+          kubectl apply -f monitoring/grafana-deployment.yaml
+          kubectl apply -f monitoring/grafana-service.yaml
