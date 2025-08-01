@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-service
+  namespace: journal-app
+spec:
+  type: NodePort  # 🌍 Or use LoadBalancer if in EKS, AKS, etc.
+  selector:
+    app: fastapi-app
+  ports:
+  - port: 80  # 📦 Port exposed internally
+    targetPort: 8000  # 🚪 Port your FastAPI app is listening on
+    nodePort: 30080  # 📤 External port (NodePort range is 30000–32767)
