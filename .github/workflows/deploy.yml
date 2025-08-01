@@ -73,7 +73,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted # ✅ Your local machine
+    runs-on: self-hosted # Your local machine
 
     steps:
       - name: Checkout Code
