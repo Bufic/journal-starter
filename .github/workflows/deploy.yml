@@ -103,7 +103,7 @@ jobs:
           kubectl apply -f monitoring/prometheus/prometheus-configmap.yaml
           kubectl apply -f monitoring/prometheus/prometheus-deployment.yaml
           kubectl apply -f monitoring/prometheus/prometheus-service.yaml
-          kubectl apply -f monitoring/grafana/grafana-datasources.yaml
-          kubectl apply -f monitoring/grafana/grafana-dashboards.yaml
+          kubectl apply -f monitoring/grafana/grafana-datasource-config.yaml
+          kubectl apply -f monitoring/grafana/grafana-dashboard-config.yaml
           kubectl apply -f monitoring/grafana/grafana-deployment.yaml
           kubectl apply -f monitoring/grafana/grafana-service.yaml
