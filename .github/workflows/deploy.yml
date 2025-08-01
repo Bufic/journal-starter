@@ -100,10 +100,10 @@ jobs:
 
       - name: Deploy Monitoring stack (Prometheus & Grafana)
         run: |
-          kubectl apply -f monitoring/prometheus-configmap.yaml
-          kubectl apply -f monitoring/prometheus-deployment.yaml
-          kubectl apply -f monitoring/prometheus-service.yaml
-          kubectl apply -f monitoring/grafana-datasources.yaml
-          kubectl apply -f monitoring/grafana-dashboards.yaml
-          kubectl apply -f monitoring/grafana-deployment.yaml
-          kubectl apply -f monitoring/grafana-service.yaml
+          kubectl apply -f monitoring/prometheus/prometheus-configmap.yaml
+          kubectl apply -f monitoring/prometheus/prometheus-deployment.yaml
+          kubectl apply -f monitoring/prometheus/prometheus-service.yaml
+          kubectl apply -f monitoring/grafana/grafana-datasources.yaml
+          kubectl apply -f monitoring/grafana/grafana-dashboards.yaml
+          kubectl apply -f monitoring/grafana/grafana-deployment.yaml
+          kubectl apply -f monitoring/grafana/grafana-service.yaml
